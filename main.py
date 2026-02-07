@@ -6,6 +6,7 @@ pygame.init()
 WIDTH = 400
 HEIGHT = 711
 BLUE = "#004CFF"
+LIGHT_BLUE = "#5B8CFF"
 RED = "#FF0000"
 GREEN = "#2BFF00"
 BLACK = "#000000"
@@ -28,7 +29,7 @@ incomplete = FONT_SMALL.render("Incomplete", True, GREY)
 incomplete_rect = incomplete.get_rect(topleft=(160, 5))
 
 # -- List initialization --
-do_list = [{"text":"Sample element", "status":0}]
+do_list = [{"text":"Sample element", "status":0, "color":BLUE}]
 typing = False
 current_input = ""
 tab = False
@@ -36,40 +37,41 @@ tab = False
 # -- Functions --
 def render_item(item):
     text = item["text"]
-    text = FONT_MEDIUM.render(text, True, BLUE)
+    text = FONT_MEDIUM.render(text, True, item["color"])
     text_rect = text.get_rect(topleft=(20, y))
     screen.blit(text, text_rect)
     item["rect"] = text_rect
 
 # -- Main loop --
 while True:
+    MOUSE_POS = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if(add_text_rect.collidepoint(event.pos)):
+            if(add_text_rect.collidepoint(MOUSE_POS)):
                 typing = not typing
-            if(complete_rect.collidepoint(event.pos)):
+            if(complete_rect.collidepoint(MOUSE_POS)):
                 tab = True
-            if(incomplete_rect.collidepoint(event.pos)):
+            if(incomplete_rect.collidepoint(MOUSE_POS)):
                 tab = False
             for i in do_list:
-                if i["rect"].collidepoint(event.pos) and i["status"] == tab:
+                if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
                     i["status"] = not i["status"]
                     break
         if event.type == pygame.KEYDOWN and typing:
             if event.key == pygame.K_BACKSPACE:
                 current_input = current_input[:-1]
             elif event.key == pygame.K_RETURN:
-                do_list.append({"text":current_input, "status":0})
+                do_list.append({"text":current_input, "status":0, "color":BLUE})
                 current_input = ""
                 typing = False
             else:
                 current_input+=event.unicode
 
     screen.fill(WHITE)
-    # render elements
+    # Render elements
     y = STARTING_HEIGHT
     for item in do_list:
         if item["status"]==0 and not tab:
@@ -85,7 +87,7 @@ while True:
     if typing:
         screen.blit(typing_text, typing_text_rect)
 
-    # render tabs
+    # Render tabs
     if tab:
         complete = FONT_SMALL.render("Complete", True, GREY)
         incomplete = FONT_SMALL.render("Incomplete", True, BLACK)
@@ -95,5 +97,12 @@ while True:
     screen.blit(complete, complete_rect)
     screen.blit(incomplete, incomplete_rect)
     pygame.draw.line(screen, BLACK, (0, 40), (400, 40))
+
+    # Effects
+    for i in do_list:
+        if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
+            i["color"] = LIGHT_BLUE
+        else:
+            i["color"] = BLUE
 
     pygame.display.update()
