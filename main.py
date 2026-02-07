@@ -37,8 +37,9 @@ tab = False
 def render_item(item):
     text = item["text"]
     text = FONT_MEDIUM.render(text, True, BLUE)
-    text_rect = text.get_rect(topleft=(20, STARTING_HEIGHT))
+    text_rect = text.get_rect(topleft=(20, y))
     screen.blit(text, text_rect)
+    item["rect"] = text_rect
 
 # -- Main loop --
 while True:
@@ -53,28 +54,33 @@ while True:
                 tab = True
             if(incomplete_rect.collidepoint(event.pos)):
                 tab = False
+            for i in do_list:
+                if i["rect"].collidepoint(event.pos) and i["status"] == tab:
+                    i["status"] = not i["status"]
+                    break
         if event.type == pygame.KEYDOWN and typing:
             if event.key == pygame.K_BACKSPACE:
                 current_input = current_input[:-1]
             elif event.key == pygame.K_RETURN:
                 do_list.append({"text":current_input, "status":0})
                 current_input = ""
+                typing = False
             else:
                 current_input+=event.unicode
 
     screen.fill(WHITE)
     # render elements
+    y = STARTING_HEIGHT
     for item in do_list:
         if item["status"]==0 and not tab:
             render_item(item)
-            STARTING_HEIGHT+=40
+            y+=40
         if item["status"]==1 and tab:
             render_item(item)
-            STARTING_HEIGHT+=40
+            y+=40
     current_input_text = FONT_MEDIUM.render(current_input, True, BLUE)
-    current_input_rect = current_input_text.get_rect(topleft=(20, STARTING_HEIGHT))
+    current_input_rect = current_input_text.get_rect(topleft=(20, y))
     screen.blit(current_input_text, current_input_rect)
-    STARTING_HEIGHT=51
     screen.blit(add_text, add_text_rect)
     if typing:
         screen.blit(typing_text, typing_text_rect)
