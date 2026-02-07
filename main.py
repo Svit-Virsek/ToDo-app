@@ -16,6 +16,7 @@ FONT_SMALL = pygame.font.SysFont("arialrounded", 20)
 FONT_MEDIUM = pygame.font.SysFont("arialrounded", 30)
 FONT_BIG = pygame.font.SysFont("arialrounded", 40)
 STARTING_HEIGHT = 51
+LINE_LENGHT = 17
 
 # -- Screen objects --
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -27,6 +28,10 @@ complete = FONT_SMALL.render("Complete", True, BLACK)
 complete_rect = complete.get_rect(topleft=(30, 5))
 incomplete = FONT_SMALL.render("Incomplete", True, GREY)
 incomplete_rect = incomplete.get_rect(topleft=(160, 5))
+checkbox_empty = pygame.image.load("assets/images/checkbox_empty.png")
+checkbox_empty = pygame.transform.scale(checkbox_empty, (32, 32))
+checkbox_tick = pygame.image.load("assets/images/checkbox_tick.png")
+checkbox_tick = pygame.transform.scale(checkbox_tick, (32, 32))
 
 # -- List initialization --
 do_list = [{"text":"Sample element", "status":0, "color":BLUE}]
@@ -35,12 +40,41 @@ current_input = ""
 tab = False
 
 # -- Functions --
-def render_item(item):
+def render_item(item, y):
     text = item["text"]
-    text = FONT_MEDIUM.render(text, True, item["color"])
-    text_rect = text.get_rect(topleft=(20, y))
-    screen.blit(text, text_rect)
-    item["rect"] = text_rect
+    if len(text)<=17:
+        text = FONT_MEDIUM.render(text, True, item["color"])
+        text_rect = text.get_rect(topleft=(20, y))
+        screen.blit(text, text_rect)
+        if item["status"] == 0:
+            screen.blit(checkbox_empty, (348, y+5))
+        else:
+            screen.blit(checkbox_tick, (348, y+5))
+        item["rect"] = text_rect
+        return y
+    else:
+        words = text.split(" ")
+        lines = []
+        for word in words:
+            if len(lines)==0:
+                lines.append(word+" ")
+            elif len(lines[-1]+word)<=17:
+                lines[-1]+=word+" "
+            else:
+                lines.append(word+" ")
+        starting_y = y
+        for line in lines:
+            text = FONT_MEDIUM.render(line, True, item["color"])
+            text_rect = text.get_rect(topleft=(20, y))
+            screen.blit(text, text_rect)
+            y+=35
+        text_rect = Rect(20, starting_y, 325, y-starting_y)
+        item["rect"] = text_rect
+        if item["status"] == 0:
+            screen.blit(checkbox_empty, (348, (starting_y+y)/2-5))
+        else:
+            screen.blit(checkbox_tick, (348, (starting_y+y)/2-5))
+        return y-35
 
 # -- Main loop --
 while True:
@@ -75,10 +109,10 @@ while True:
     y = STARTING_HEIGHT
     for item in do_list:
         if item["status"]==0 and not tab:
-            render_item(item)
+            y = render_item(item, y)
             y+=40
         if item["status"]==1 and tab:
-            render_item(item)
+            y = render_item(item, y)
             y+=40
     current_input_text = FONT_MEDIUM.render(current_input, True, BLUE)
     current_input_rect = current_input_text.get_rect(topleft=(20, y))
