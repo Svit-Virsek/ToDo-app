@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, json, os
 from pygame.locals import *
 pygame.init()
 
@@ -17,6 +17,34 @@ FONT_MEDIUM = pygame.font.SysFont("arialrounded", 30)
 FONT_BIG = pygame.font.SysFont("arialrounded", 40)
 STARTING_HEIGHT = 51
 LINE_LENGHT = 17
+COLOR_CODE = {
+    "BLUE":BLUE,
+    "LIGHT_BLUE":LIGHT_BLUE
+}
+HEX_TO_KEY = {v: k for k, v in COLOR_CODE.items()}
+
+# -- JSON --
+def load_data():
+    with open("assets/data/tasks.json") as f:
+        data = json.load(f)
+
+        for task in data:
+            task["color"] = COLOR_CODE[task["color"]]
+
+    return data
+
+def save_data(tasks):
+    os.makedirs("assets/data", exist_ok=True)
+    tasks_to_save = []
+    for task in tasks:
+        to_save = {
+            "text":task["text"],
+            "status":task["status"],
+            "color":HEX_TO_KEY[task["color"]]
+        }
+        tasks_to_save.append(to_save)
+    with open("assets/data/tasks.json", "w") as f:
+        json.dump(tasks_to_save, f, indent=2)
 
 # -- Screen objects --
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -34,7 +62,7 @@ checkbox_tick = pygame.image.load("assets/images/checkbox_tick.png")
 checkbox_tick = pygame.transform.scale(checkbox_tick, (32, 32))
 
 # -- List initialization --
-do_list = [{"text":"Sample element", "status":0, "color":BLUE}]
+do_list = load_data()
 typing = False
 current_input = ""
 tab = False
@@ -91,9 +119,11 @@ while True:
             if(incomplete_rect.collidepoint(MOUSE_POS)):
                 tab = False
             for i in do_list:
-                if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
-                    i["status"] = not i["status"]
-                    break
+                if "rect" in i:
+                    if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
+                        i["status"] = not i["status"]
+                        save_data(do_list)
+                        break
         if event.type == pygame.KEYDOWN and typing:
             if event.key == pygame.K_BACKSPACE:
                 current_input = current_input[:-1]
@@ -101,6 +131,7 @@ while True:
                 do_list.append({"text":current_input, "status":0, "color":BLUE})
                 current_input = ""
                 typing = False
+                save_data(do_list)
             else:
                 current_input+=event.unicode
 
@@ -134,9 +165,10 @@ while True:
 
     # Effects
     for i in do_list:
-        if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
-            i["color"] = LIGHT_BLUE
-        else:
-            i["color"] = BLUE
+        if "rect" in i:
+            if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
+                i["color"] = LIGHT_BLUE
+            else:
+                i["color"] = BLUE
 
     pygame.display.update()
