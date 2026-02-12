@@ -74,6 +74,7 @@ def render_item(item, y):
         text = FONT_MEDIUM.render(text, True, item["color"])
         text_rect = text.get_rect(topleft=(20, y))
         screen.blit(text, text_rect)
+        text_rect = Rect(20, y, 400, 30)
         if item["status"] == 0:
             screen.blit(checkbox_empty, (348, y+5))
         else:
@@ -96,7 +97,7 @@ def render_item(item, y):
             text_rect = text.get_rect(topleft=(20, y))
             screen.blit(text, text_rect)
             y+=35
-        text_rect = Rect(20, starting_y, 325, y-starting_y)
+        text_rect = Rect(20, starting_y, 400, y-starting_y)
         item["rect"] = text_rect
         if item["status"] == 0:
             screen.blit(checkbox_empty, (348, (starting_y+y)/2-5))
