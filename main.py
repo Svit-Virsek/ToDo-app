@@ -63,6 +63,8 @@ checkbox_tick = pygame.transform.scale(checkbox_tick, (32, 32))
 
 # -- List initialization --
 do_list = load_data()
+for item in do_list:
+    item["effect"]=False
 typing = False
 current_input = ""
 tab = False
@@ -71,14 +73,21 @@ tab = False
 def render_item(item, y):
     text = item["text"]
     if len(text)<=17:
-        text = FONT_MEDIUM.render(text, True, item["color"])
+        if not item["effect"]:
+            text = FONT_MEDIUM.render(text, True, BLUE)
+            if item["status"] == 0:
+                screen.blit(checkbox_empty, (348, y+5))
+            else:
+                screen.blit(checkbox_tick, (348, y+5))
+        else:
+            text = FONT_MEDIUM.render(text, True, LIGHT_BLUE)
+            if item["status"] == 1:
+                screen.blit(checkbox_empty, (348, y+5))
+            else:
+                screen.blit(checkbox_tick, (348, y+5))
         text_rect = text.get_rect(topleft=(20, y))
         screen.blit(text, text_rect)
         text_rect = Rect(20, y, 400, 30)
-        if item["status"] == 0:
-            screen.blit(checkbox_empty, (348, y+5))
-        else:
-            screen.blit(checkbox_tick, (348, y+5))
         item["rect"] = text_rect
         return y
     else:
@@ -129,7 +138,7 @@ while True:
             if event.key == pygame.K_BACKSPACE:
                 current_input = current_input[:-1]
             elif event.key == pygame.K_RETURN:
-                do_list.append({"text":current_input, "status":0, "color":BLUE})
+                do_list.append({"text":current_input, "status":0, "color":BLUE, "effect":False})
                 current_input = ""
                 typing = False
                 save_data(do_list)
@@ -168,8 +177,8 @@ while True:
     for i in do_list:
         if "rect" in i:
             if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
-                i["color"] = LIGHT_BLUE
+                i["effect"]=True
             else:
-                i["color"] = BLUE
+                i["effect"] = False
 
     pygame.display.update()
