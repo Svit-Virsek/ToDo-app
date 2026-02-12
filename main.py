@@ -27,10 +27,6 @@ HEX_TO_KEY = {v: k for k, v in COLOR_CODE.items()}
 def load_data():
     with open("assets/data/tasks.json") as f:
         data = json.load(f)
-
-        for task in data:
-            task["color"] = COLOR_CODE[task["color"]]
-
     return data
 
 def save_data(tasks):
@@ -40,7 +36,6 @@ def save_data(tasks):
         to_save = {
             "text":task["text"],
             "status":task["status"],
-            "color":HEX_TO_KEY[task["color"]]
         }
         tasks_to_save.append(to_save)
     with open("assets/data/tasks.json", "w") as f:
@@ -60,6 +55,10 @@ checkbox_empty = pygame.image.load("assets/images/checkbox_empty.png")
 checkbox_empty = pygame.transform.scale(checkbox_empty, (32, 32))
 checkbox_tick = pygame.image.load("assets/images/checkbox_tick.png")
 checkbox_tick = pygame.transform.scale(checkbox_tick, (32, 32))
+trash_can = pygame.image.load("assets/images/trashCan.png")
+trash_can = pygame.transform.scale(trash_can, (32, 32))
+trashCan_open = pygame.image.load("assets/images/trashCan_open.png")
+trashCan_open = pygame.transform.scale(trashCan_open, (32, 32))
 
 # -- List initialization --
 do_list = load_data()
@@ -68,6 +67,7 @@ for item in do_list:
 typing = False
 current_input = ""
 tab = False
+deleting = False
 
 # -- Functions --
 def render_item(item, y):
@@ -75,16 +75,22 @@ def render_item(item, y):
     if len(text)<=17:
         if not item["effect"]:
             text = FONT_MEDIUM.render(text, True, BLUE)
-            if item["status"] == 0:
-                screen.blit(checkbox_empty, (348, y+5))
+            if not deleting:
+                if item["status"] == 0:
+                    screen.blit(checkbox_empty, (348, y+5))
+                else:
+                    screen.blit(checkbox_tick, (348, y+5))
             else:
-                screen.blit(checkbox_tick, (348, y+5))
+                screen.blit(trash_can, (348, y+5))
         else:
             text = FONT_MEDIUM.render(text, True, LIGHT_BLUE)
-            if item["status"] == 1:
-                screen.blit(checkbox_empty, (348, y+5))
+            if not deleting:
+                if item["status"] == 1:
+                    screen.blit(checkbox_empty, (348, y+5))
+                else:
+                    screen.blit(checkbox_tick, (348, y+5))
             else:
-                screen.blit(checkbox_tick, (348, y+5))
+                screen.blit(trashCan_open, (348, y+5))
         text_rect = text.get_rect(topleft=(20, y))
         screen.blit(text, text_rect)
         text_rect = Rect(20, y, 400, 30)
@@ -133,20 +139,27 @@ while True:
                 tab = False
             for i in do_list:
                 if "rect" in i:
-                    if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab:
+                    if i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab and not deleting:
                         i["status"] = not i["status"]
+                        save_data(do_list)
+                        break
+                    elif i["rect"].collidepoint(MOUSE_POS) and i["status"] == tab and deleting:
+                        do_list.remove(i)
                         save_data(do_list)
                         break
         if event.type == pygame.KEYDOWN and typing:
             if event.key == pygame.K_BACKSPACE:
                 current_input = current_input[:-1]
             elif event.key == pygame.K_RETURN:
-                do_list.append({"text":current_input, "status":0, "color":BLUE, "effect":False})
+                do_list.append({"text":current_input, "status":0, "effect":False})
                 current_input = ""
                 typing = False
                 save_data(do_list)
             else:
                 current_input+=event.unicode
+        elif event.type == pygame.KEYDOWN and not typing:
+            if event.key == pygame.K_ESCAPE:
+                deleting = not deleting
 
     screen.fill(WHITE)
     # Render elements
