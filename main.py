@@ -17,11 +17,6 @@ FONT_MEDIUM = pygame.font.SysFont("arialrounded", 30)
 FONT_BIG = pygame.font.SysFont("arialrounded", 40)
 STARTING_HEIGHT = 51
 LINE_LENGHT = 17
-COLOR_CODE = {
-    "BLUE":BLUE,
-    "LIGHT_BLUE":LIGHT_BLUE
-}
-HEX_TO_KEY = {v: k for k, v in COLOR_CODE.items()}
 
 # -- JSON --
 def load_data():
