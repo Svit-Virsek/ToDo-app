@@ -102,7 +102,10 @@ def render_item(item, y):
                 lines.append(word+" ")
         starting_y = y
         for line in lines:
-            text = FONT_MEDIUM.render(line, True, item["color"])
+            if not item["effect"]:
+                text = FONT_MEDIUM.render(line, True, BLUE)
+            else:
+                text = FONT_MEDIUM.render(line, True, LIGHT_BLUE)
             text_rect = text.get_rect(topleft=(20, y))
             screen.blit(text, text_rect)
             y+=35
